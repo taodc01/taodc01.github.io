@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>新年快乐</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: '黑体', sans-serif;
+            background-color: black; /* 初始背景为黑色 */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        .home-screen {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+        }
+        .fade-slide-up {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 1s ease, transform 1s ease;
+        }
+        .swirl-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        #audio-controls {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 20;
+        }
+        #play-pause-btn {
+            width: 50px;
+            height: 50px;
+            background-image: url("nn.jpg");
+            background-size: cover;
+            background-position: center;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            transition: transform 0.5s ease-in-out;
+        }
+        #play-pause-btn.playing {
+            animation: rotate 5s linear infinite;
+        }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        #text {
+            font-size: 24px;
+            color: white;
+            text-align: center;
+            width: 80%;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            margin: auto;
+            position: relative;
+            z-index: 10;
+        }
+        #cursor {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='red' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c3.08 0 5.5 2.02 5.5 4.5 0 2.16-2.12 3.22-2.12 3.22l1.45 1.32C14.46 9.99 16 11.73 16 14.5c0 3.05-2.99 5.5-6.5 5.5z'/%3E%3C/svg%3E");
+            background-size: cover;
+            animation: blink 1s step-end infinite;
+            z-index: 10;
+        }
+        @keyframes blink {
+            from { opacity: 1; }
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <canvas class="swirl-canvas" width="1238" height="947"></canvas>
+    <div class="home-screen">
+        <h1 class="fade-slide-up" style="opacity: 1; transform: translateY(0px);">🧨🧧2025新年快乐！🐍✨๑𝙃𝙖𝙥𝙥𝙮 𝙉𝙚𝙬𝙔𝙚𝙖𝙧🎇</h1>
+    </div>
+    <div id="audio-controls">
+        <button id="play-pause-btn" onclick="togglePlayPause()" class=""></button>
+        <audio id="audio" loop="">
+            <source src="year.mp3" type="audio/mpeg">
+            您的浏览器不支持 audio 元素。
+        </audio>
+    </div>
+    <div id="cursor" style="left: 984.844px; top: 473.667px;"></div>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const canvas = document.querySelector('.swirl-canvas');
+        const ctx = canvas.getContext('2d');
+
+        const width = canvas.width = window.innerWidth;
+        const height = canvas.height = window.innerHeight;
+
+        const particles = [];
+
+        for (let i = 0; i < 100; i++) {
+            particles.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                vx: (Math.random() - 0.5) * 2,
+                vy: (Math.random() - 0.5) * 2,
+                color: `hsl(${Math.random() * 360}, 100%, 50%)`
+            });
+        }
+
+        function draw() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, width, height);
+
+            particles.forEach(particle => {
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, 2, 0, Math.PI * 2);
+                ctx.fillStyle = particle.color;
+                ctx.fill();
+
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+
+                if (particle.x < 0 || particle.x > width) particle.vx *= -1;
+                if (particle.y < 0 || particle.y > height) particle.vy *= -1;
+            });
+
+            requestAnimationFrame(draw);
+        }
+
+        draw();
+
+        // 逐字显示“2025新年快乐”
+        const textElement = document.querySelector('.fade-slide-up');
+        const text = `🧨2025新年快乐！🧧🐍✨๑𝙃𝙖𝙥𝙥𝙮 𝙉𝙚𝙬𝙔𝙚𝙖𝙧🎇`;
+        let index = 0;
+
+        // 清空文字
+        textElement.innerHTML = "";
+
+        function showNextChar() {
+            if (index < text.length) {
+                // 检测换行符并替换为<br>
+                const char = text[index] === '\n' ? '<br>' : text[index];
+                textElement.innerHTML += char;
+                index++;
+
+                // 更新鼠标光标位置
+                const rect = textElement.getBoundingClientRect();
+                const cursorX = rect.left + rect.width;
+                const cursorY = rect.top + rect.height / 2;
+                document.getElementById('cursor').style.left = `${cursorX}px`;
+                document.getElementById('cursor').style.top = `${cursorY}px`;
+
+                setTimeout(showNextChar, 300); // 每300毫秒显示一个字符
+            }
+        }
+
+        // 确保文字在显示之前先清空
+        setTimeout(() => {
+            showNextChar();
+        }, 100); // 延迟100毫秒后开始显示文字
+
+        // Mouse event listener
+        canvas.addEventListener('click', (event) => {
+            const x = event.clientX;
+            const y = event.clientY;
+
+            for (let i = 0; i < 10; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10,
+                    color: `hsl(${Math.random() * 360}, 100%, 50%)`
+                });
+            }
+        });
+
+        // 添加一个按钮或事件来触发背景变化
+        document.getElementById('play-pause-btn').addEventListener('click', () => {
+            // 显示背景图片
+            document.body.style.backgroundImage = 'url("shee.jpg")';
+            document.body.style.backgroundSize = 'cover';
+            document.body.style.backgroundPosition = 'center';
+            document.body.style.backgroundAttachment = 'fixed';
+
+            // 3秒后移除背景图片
+            setTimeout(() => {
+                document.body.style.backgroundImage = 'none';
+            }, 100);
+        });
+    });
+
+    const audio = document.getElementById('audio');
+    const playPauseBtn = document.getElementById('play-pause-btn');
+
+    function togglePlayPause() {
+        if (audio.paused) {
+            audio.play();
+            playPauseBtn.classList.add('playing');
+        } else {
+            audio.pause();
+            playPauseBtn.classList.remove('playing');
+        }
+    }
+
+    document.addEventListener('click', function(event) {
+        const heart = document.createElement("span");
+        heart.innerHTML = "💕";
+        heart.style.position = "absolute";
+        heart.style.left = event.clientX + "px";
+        heart.style.top = event.clientY + "px";
+        document.body.appendChild(heart);
+
+        setTimeout(() => {
+            heart.remove();
+        }, 5000);
+    });
+    </script>
+</body>
+</html>
